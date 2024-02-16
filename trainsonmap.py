@@ -52,5 +52,5 @@ folium_static(m)
 st.write("Raw data")
 st.write(merged_df)
 
-
+st.write("[Fintraffic’s Creative Commons 4.0 By license](https://www.digitraffic.fi/en/terms-of-service/)")
 st.write("Data used: https://rata.digitraffic.fi/api/v1/train-locations.geojson/latest/ , Train metadata: https://rata.digitraffic.fi/api/v1/trains/latest/")
