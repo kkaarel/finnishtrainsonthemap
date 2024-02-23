@@ -7,44 +7,28 @@ import folium
 st.title("Train locations on map")
 
 st.write("The API returns the latest location information for trains on the map in Finland")
-
+#geo location
 url = "https://rata.digitraffic.fi/api/v1/train-locations.geojson/latest/"
 response = requests.get(url)
 data = response.json()
 
+#trains
+url_trains = "https://rata.digitraffic.fi/api/v1/live-trains"
+response = requests.get(url_trains)
+data_trains = response.json()
+
+df_trains = pd.json_normalize(data_trains)
+
 
 df = pd.json_normalize(data["features"])
 
-# Loop through the train numbers in the DataFrame and get the metadata for each train from the API
-metadata = []
-with st.spinner('Fetching metadata...'):
-    count = 0
-    for train_number in df["properties.trainNumber"].unique():
-        metadata_url = f"https://rata.digitraffic.fi/api/v1/trains/latest/{train_number}"
-        metadata_response = requests.get(metadata_url)
-        metadata_data = metadata_response.json()
-        metadata_dict = metadata_data[0] if isinstance(metadata_data, list) and len(metadata_data) > 0 else {}
-        metadata.append({
-            "trainNumber": metadata_dict.get("trainNumber", ""),
-            "operatorShortCode": metadata_dict.get("operatorShortCode", ""),
-            "trainType": metadata_dict.get("trainType", ""),
-            "trainCategory": metadata_dict.get("trainCategory", "")
-        })
-        count += 1
-    st.text(f"Fetched metadata for {count} trains")
-
-# Create a DataFrame from the metadata
-metadata_df = pd.json_normalize(metadata)
-
-# Merge the metadata DataFrame with the train locations DataFrame
-merged_df = pd.merge(df, metadata_df, left_on="properties.trainNumber", right_on="trainNumber")
-
+df_merged = pd.merge(df, df_trains, left_on="properties.trainNumber", right_on="trainNumber")
 
 # Create a map centered on the first geo point
-m = folium.Map(location=[merged_df.iloc[0]["geometry.coordinates"][1], merged_df.iloc[0]["geometry.coordinates"][0]], zoom_start=5)
+m = folium.Map(location=[df_merged.iloc[0]["geometry.coordinates"][1], df_merged.iloc[0]["geometry.coordinates"][0]], zoom_start=5)
 
 # Add markers for each geo point
-for index, row in merged_df.iterrows():
+for index, row in df_merged.iterrows():
     folium.Marker(location=[row["geometry.coordinates"][1], row["geometry.coordinates"][0]], 
                   popup=f"Train number: {row['properties.trainNumber']}\nSpeed: {row['properties.speed']} km/h\nOperator: {row['operatorShortCode']}\nTrain type: {row['trainType']}\nTrain category: {row['trainCategory']}").add_to(m)
 
@@ -53,7 +37,7 @@ folium_static(m)
 
 # Display the DataFrame
 st.write("Raw data")
-st.write(merged_df)
+st.write(df_merged)
 
 st.write("[Fintraffic’s Creative Commons 4.0 By license](https://www.digitraffic.fi/en/terms-of-service/)")
 st.write("Data used: https://rata.digitraffic.fi/api/v1/train-locations.geojson/latest/ , Train metadata: https://rata.digitraffic.fi/api/v1/trains/latest/")
