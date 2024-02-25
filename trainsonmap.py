@@ -4,7 +4,7 @@ import pandas as pd
 from streamlit_folium import folium_static
 import folium
 
-st.title("Train locations on map")
+st.title("Train locations on the map")
 
 st.write("The API returns the latest location information for trains on the map in Finland")
 #geo location
@@ -41,3 +41,5 @@ st.write(df_merged)
 
 st.write("[Fintraffic’s Creative Commons 4.0 By license](https://www.digitraffic.fi/en/terms-of-service/)")
 st.write("Data used: https://rata.digitraffic.fi/api/v1/train-locations.geojson/latest/ , Train metadata: https://rata.digitraffic.fi/api/v1/trains/latest/")
+
+st.write("[Developed by Kaarel Kõrvemaa](https://www.kkaarel.com)")
